@@ -1,34 +1,34 @@
-# Build stage
+# Étape de construction
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copier les fichiers package
 COPY package*.json ./
 
-# Install dependencies
+# Installer les dépendances
 RUN npm install
 
-# Copy source code
+# Copier le code source
 COPY . .
 
-# Build application
+# Construire l'application
 RUN npm run build
 
-# Production stage
+# Étape de production
 FROM nginx:alpine
 
-# Create non-root user
+# Créer un utilisateur non-root
 RUN addgroup -g 1001 -S nginx-app && \
     adduser -S nginx-app -u 1001
 
-# Copy built files from builder
+# Copier les fichiers construits depuis le builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration
+# Copier la configuration nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Change ownership
+# Changer les permissions
 RUN chown -R nginx-app:nginx-app /usr/share/nginx/html && \
     chown -R nginx-app:nginx-app /var/cache/nginx && \
     chown -R nginx-app:nginx-app /var/log/nginx && \
@@ -36,15 +36,15 @@ RUN chown -R nginx-app:nginx-app /usr/share/nginx/html && \
     touch /var/run/nginx.pid && \
     chown -R nginx-app:nginx-app /var/run/nginx.pid
 
-# Switch to non-root user
+# Basculer vers l'utilisateur non-root
 USER nginx-app
 
-# Expose port
+# Exposer le port
 EXPOSE 80
 
-# Health check
+# Vérification de santé
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget -qO- http://localhost || exit 1
 
-# Start nginx
+# Démarrer nginx
 CMD ["nginx", "-g", "daemon off;"]

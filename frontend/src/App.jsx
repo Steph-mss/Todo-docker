@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// API base URL - uses the Docker service name 'api' in production
+// URL de base de l'API - utilise le nom du service Docker 'api' en production
 const API_URL = import.meta.env.PROD ? 'http://localhost:3000' : '/api'
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Fetch tasks on component mount
+  // Récupérer les tâches au montage du composant
   useEffect(() => {
     fetchTasks()
   }, [])

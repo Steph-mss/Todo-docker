@@ -317,7 +317,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
+/* Responsive (adaptatif) */
 @media (max-width: 768px) {
   .app {
     padding: 1rem;

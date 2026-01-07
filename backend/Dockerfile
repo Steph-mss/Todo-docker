@@ -1,38 +1,38 @@
-# Build stage
+# Étape de construction
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copier les fichiers package
 COPY package*.json ./
 
-# Install dependencies
+# Installer les dépendances
 RUN npm install --production
 
-# Production stage
+# Étape de production
 FROM node:20-alpine
 
-# Create non-root user
+# Créer un utilisateur non-root
 RUN addgroup -g 1001 -S nodejs && \
   adduser -S nodejs -u 1001
 
 WORKDIR /app
 
-# Copy dependencies from builder
+# Copier les dépendances depuis le builder
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 
-# Copy application code
+# Copier le code de l'application
 COPY --chown=nodejs:nodejs . .
 
-# Switch to non-root user
+# Basculer vers l'utilisateur non-root
 USER nodejs
 
-# Expose port
+# Exposer le port
 EXPOSE 3000
 
-# Health check
+# Vérification de santé
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start application
+# Démarrer l'application
 CMD ["node", "src/index.js"]

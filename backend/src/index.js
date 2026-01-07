@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
+// Point de terminaison de vérification de santé
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -18,7 +18,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/tasks', tasksRouter);
 
-// Root endpoint
+// Point de terminaison racine
 app.get('/', (req, res) => {
   res.json({
     message: 'Todo API is running',
@@ -34,13 +34,13 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error handling middleware
+// Middleware de gestion des erreurs
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
+// Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📝 API available at http://localhost:${PORT}`);

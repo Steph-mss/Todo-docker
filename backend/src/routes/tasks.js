@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
-// GET /tasks - Get all tasks
+// GET /tasks - Récupérer toutes les tâches
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /tasks - Create a new task
+// POST /tasks - Créer une nouvelle tâche
 router.post('/', async (req, res) => {
   const { title } = req.body;
 
@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /tasks/:id - Update a task (mark as completed/uncompleted)
+// PUT /tasks/:id - Mettre à jour une tâche (marquer comme terminée/non terminée)
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { completed } = req.body;
@@ -61,7 +61,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /tasks/:id - Delete a task
+// DELETE /tasks/:id - Supprimer une tâche
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
