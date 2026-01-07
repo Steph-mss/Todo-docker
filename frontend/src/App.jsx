@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// URL de base de l'API - utilise le nom du service Docker 'api' en production
-const API_URL = import.meta.env.PROD ? 'http://localhost:3000' : '/api'
+// Configuration de l'URL de l'API
+// En production: utilise VITE_API_URL défini au build time
+// En développement: utilise le proxy Vite (/api)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+console.log('🔗 API URL configurée:', API_URL);
 
 function App() {
   const [tasks, setTasks] = useState([])
@@ -20,12 +24,14 @@ function App() {
       setLoading(true)
       setError(null)
       const response = await fetch(`${API_URL}/tasks`)
-      if (!response.ok) throw new Error('Failed to fetch tasks')
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`)
+      }
       const data = await response.json()
       setTasks(data)
     } catch (err) {
       setError(err.message)
-      console.error('Error fetching tasks:', err)
+      console.error('❌ Erreur lors de la récupération des tâches:', err)
     } finally {
       setLoading(false)
     }

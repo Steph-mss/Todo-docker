@@ -7,19 +7,31 @@ services:
     container_name: todo-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-tododb}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      # Sécurité: désactiver les connexions sans mot de passe
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - todo-network
+    # NE PAS exposer le port en production !
+    # Décommenter uniquement pour le debug local
+    # ports:
+    #   - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    # Sécurité: limiter les ressources
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
 
   # API Backend
   api:
@@ -29,14 +41,17 @@ services:
     container_name: todo-api
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
     environment:
       DB_HOST: db
       DB_PORT: ${DB_PORT:-5432}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_NAME: ${DB_NAME:-tododb}
-      NODE_ENV: production
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      # Origines CORS autorisées (séparées par des virgules)
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
     depends_on:
       db:
         condition: service_healthy
@@ -48,29 +63,42 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
+    # Sécurité: limiter les ressources
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   # Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # Passer l'URL de l'API au build
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     container_name: todo-frontend
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "${FRONTEND_PORT:-8080}:80"
     depends_on:
       api:
         condition: service_healthy
     networks:
       - todo-network
-    environment:
-      - VITE_API_URL=http://localhost:3000
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health" ]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
+    # Sécurité: limiter les ressources
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
 
 networks:
   todo-network:
